@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+  
+  <entry>
+    <title>JCC速查</title>
+    <link href="/2015/12/06/1/"/>
+    <url>/2015/12/06/1/</url>
+    
+    <content type="html"><![CDATA[<h2 id="速查表"><a href="#速查表" class="headerlink" title="速查表"></a>速查表</h2><table><thead><tr><th align="left">指令</th><th align="center">描述</th><th align="right">标志寄存器</th></tr></thead><tbody><tr><td align="left">JE, JZ</td><td align="center">结果为零则跳转(相等时跳转)</td><td align="right">ZF&#x3D;1</td></tr><tr><td align="left">JNE, JNZ</td><td align="center">结果不为零则跳转(不相等时跳转)</td><td align="right">ZF&#x3D;0</td></tr><tr><td align="left">JS</td><td align="center">结果为负则跳转</td><td align="right">SF&#x3D;1</td></tr><tr><td align="left">JNS</td><td align="center">结果为非负则跳转</td><td align="right">SF&#x3D;0</td></tr><tr><td align="left">JP, JPE</td><td align="center">结果中1的个数为偶数则跳转</td><td align="right">PF&#x3D;1</td></tr><tr><td align="left">JNP, JPO</td><td align="center">结果中1的个数为偶数则跳转</td><td align="right">PF&#x3D;0</td></tr><tr><td align="left">JO</td><td align="center">结果溢出了则跳转</td><td align="right">OF&#x3D;1</td></tr><tr><td align="left">JNO</td><td align="center">结果没有溢出则跳转</td><td align="right">OF&#x3D;0</td></tr><tr><td align="left">JB, JNAE</td><td align="center">小于则跳转 (无符号数)</td><td align="right">CF&#x3D;1</td></tr><tr><td align="left">JNB, JAE</td><td align="center">大于等于则跳转 (无符号数)</td><td align="right">CF&#x3D;0</td></tr><tr><td align="left">JBE, JNA</td><td align="center">小于等于则跳转 (无符号数)</td><td align="right">CF&#x3D;1 or ZF&#x3D;1</td></tr><tr><td align="left">JNBE, JA</td><td align="center">大于则跳转(无符号数)</td><td align="right">CF&#x3D;0 and ZF&#x3D;0</td></tr><tr><td align="left">JL, JNGE</td><td align="center">小于则跳转 (<strong>有符号数</strong>)</td><td align="right">SF≠ OF</td></tr><tr><td align="left">JNL, JGE</td><td align="center">大于等于则跳转 (<strong>有符号数</strong>)</td><td align="right">SF&#x3D;OF</td></tr><tr><td align="left">JLE, JNG</td><td align="center">小于等于则跳转 (<strong>有符号数</strong>)</td><td align="right">ZF&#x3D;1 or SF≠ OF</td></tr><tr><td align="left">JNLE, JG</td><td align="center">大于则跳转(<strong>有符号数</strong>)</td><td align="right">ZF&#x3D;0 and SF&#x3D;OF</td></tr></tbody></table><h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><ol><li>JE, JZ 结果为零则跳转(相等时跳转) ZF&#x3D;1</li></ol><figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">MOV</span> <span class="hljs-built_in">AL</span>,<span class="hljs-number">1</span><br><span class="hljs-keyword">MOV</span> <span class="hljs-built_in">CL</span>,<span class="hljs-number">1</span><br><span class="hljs-keyword">CMP</span> <span class="hljs-built_in">AL</span>,<span class="hljs-built_in">CL</span><br><span class="hljs-keyword">JE</span> <span class="hljs-number">0X0040102B</span><br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>x86汇编</category>
+      
+      <category>JCC</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>汇编</tag>
+      
+      <tag>JCC</tag>
+      
+      <tag>标志寄存器</tag>
+      
+      <tag>EFLAGS</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  
+</search>
