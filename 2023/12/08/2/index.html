@@ -18,16 +18,16 @@
   <meta name="author" content="Sin">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。  C风格函数一个标准的C语言程序“HelloWorld.c”可能会写作如下结构： 12345#include &lt;stdio.h&gt;int main(int argNums, char* args[])&#123;    printf(&quot;%s&quot;, &quot;Hello World!&amp;">
+    <meta name="description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="C语言逆向(1)">
 <meta property="og:url" content="http://dubhehub.github.io/2023/12/08/2/index.html">
 <meta property="og:site_name" content="天枢">
-<meta property="og:description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。  C风格函数一个标准的C语言程序“HelloWorld.c”可能会写作如下结构： 12345#include &lt;stdio.h&gt;int main(int argNums, char* args[])&#123;    printf(&quot;%s&quot;, &quot;Hello World!&amp;">
+<meta property="og:description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://source.unsplash.com/random/300x300/?hacker,computer,security&post_id=2">
 <meta property="article:published_time" content="2023-12-08T02:21:54.000Z">
-<meta property="article:modified_time" content="2023-12-08T05:22:37.235Z">
+<meta property="article:modified_time" content="2023-12-08T05:30:10.722Z">
 <meta property="article:author" content="Sin">
 <meta property="article:tag" content="逆向">
 <meta property="article:tag" content="C">
@@ -282,12 +282,10 @@
             
               <div class="markdown-body">
                 
-                <blockquote>
-<p>这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。</p>
-</blockquote>
-<h2 id="C风格函数"><a href="#C风格函数" class="headerlink" title="C风格函数"></a>C风格函数</h2><p>一个标准的C语言程序“HelloWorld.c”可能会写作如下结构：</p>
+                <h2 id="C风格函数"><a href="#C风格函数" class="headerlink" title="C风格函数"></a>C风格函数</h2><p>一个标准的C语言程序“HelloWorld.c”可能会写作如下结构：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argNums, <span class="hljs-type">char</span>* args[])</span>&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s&quot;</span>, <span class="hljs-string">&quot;Hello World!&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 
+<p>在无特别说明的情况下，32位编译器会将C代码按cdecl约定进行编译。</p>
 <p>在32位汇编层面，我们有如下函数调用约定：</p>
 <table>
 <thead>
