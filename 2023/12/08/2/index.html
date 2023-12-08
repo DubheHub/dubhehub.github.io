@@ -18,27 +18,27 @@
   <meta name="author" content="Sin">
   <meta name="keywords" content="">
   
-    <meta name="description" content="速查表   指令 描述 标志寄存器    JE, JZ 结果为零则跳转(相等时跳转) ZF&#x3D;1   JNE, JNZ 结果不为零则跳转(不相等时跳转) ZF&#x3D;0   JS 结果为负则跳转 SF&#x3D;1   JNS 结果为非负则跳转 SF&#x3D;0   JP, JPE 结果中1的个数为偶数则跳转 PF&#x3D;1   JNP, JPO 结果中1的个数为偶数则跳转 PF">
+    <meta name="description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。  C风格函数一个标准的C语言程序“HelloWorld.c”可能会写作如下结构： 12345#include &lt;stdio.h&gt;int main(int argNums, char* args[])&#123;    printf(&quot;%s&quot;, &quot;Hello World!&amp;">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JCC速查">
-<meta property="og:url" content="http://dubhehub.github.io/2015/12/06/1/index.html">
+<meta property="og:title" content="C语言逆向(1)">
+<meta property="og:url" content="http://dubhehub.github.io/2023/12/08/2/index.html">
 <meta property="og:site_name" content="天枢">
-<meta property="og:description" content="速查表   指令 描述 标志寄存器    JE, JZ 结果为零则跳转(相等时跳转) ZF&#x3D;1   JNE, JNZ 结果不为零则跳转(不相等时跳转) ZF&#x3D;0   JS 结果为负则跳转 SF&#x3D;1   JNS 结果为非负则跳转 SF&#x3D;0   JP, JPE 结果中1的个数为偶数则跳转 PF&#x3D;1   JNP, JPO 结果中1的个数为偶数则跳转 PF">
+<meta property="og:description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。  C风格函数一个标准的C语言程序“HelloWorld.c”可能会写作如下结构： 12345#include &lt;stdio.h&gt;int main(int argNums, char* args[])&#123;    printf(&quot;%s&quot;, &quot;Hello World!&amp;">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2015-12-06T08:48:13.000Z">
-<meta property="article:modified_time" content="2023-12-07T08:05:28.315Z">
+<meta property="article:published_time" content="2023-12-08T02:21:54.000Z">
+<meta property="article:modified_time" content="2023-12-08T03:17:46.034Z">
 <meta property="article:author" content="Sin">
-<meta property="article:tag" content="汇编">
-<meta property="article:tag" content="JCC">
-<meta property="article:tag" content="标志寄存器">
-<meta property="article:tag" content="EFLAGS">
+<meta property="article:tag" content="逆向">
+<meta property="article:tag" content="C">
+<meta property="article:tag" content="调用约定">
+<meta property="article:tag" content="堆栈平衡">
 <meta name="twitter:card" content="summary_large_image">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>JCC速查 - 天枢</title>
+  <title>C语言逆向(1) - 天枢</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -204,7 +204,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="JCC速查"></span>
+            <span id="subtitle" data-typed-text="C语言逆向(1)"></span>
           
         </div>
 
@@ -215,8 +215,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2015-12-06 16:48" pubdate>
-          December 6, 2015 pm
+        <time datetime="2023-12-08 10:21" pubdate>
+          December 8, 2023 am
         </time>
       </span>
     
@@ -227,7 +227,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          539 words
+          1.8k words
         
       </span>
     
@@ -238,7 +238,7 @@
         
         
         
-          5 mins
+          15 mins
         
       </span>
     
@@ -275,104 +275,79 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">JCC速查</h1>
+            <h1 id="seo-header">C语言逆向(1)</h1>
             
             
               <div class="markdown-body">
                 
-                <h2 id="速查表"><a href="#速查表" class="headerlink" title="速查表"></a>速查表</h2><table>
+                <blockquote>
+<p>这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。</p>
+</blockquote>
+<h2 id="C风格函数"><a href="#C风格函数" class="headerlink" title="C风格函数"></a>C风格函数</h2><p>一个标准的C语言程序“HelloWorld.c”可能会写作如下结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argNums, <span class="hljs-type">char</span>* args[])</span>&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s&quot;</span>, <span class="hljs-string">&quot;Hello World!&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在32位汇编层面，我们有如下函数调用约定：</p>
+<table>
 <thead>
 <tr>
-<th align="left">指令</th>
-<th align="center">描述</th>
-<th align="right">标志寄存器</th>
+<th align="left">约定</th>
+<th align="center">参数传递</th>
+<th align="right">栈平衡</th>
 </tr>
 </thead>
 <tbody><tr>
-<td align="left">JE, JZ</td>
-<td align="center">结果为零则跳转(相等时跳转)</td>
-<td align="right">ZF&#x3D;1</td>
+<td align="left">cdecl</td>
+<td align="center">从右到左依次压栈</td>
+<td align="right">外平栈(调用者负责平衡栈)</td>
 </tr>
 <tr>
-<td align="left">JNE, JNZ</td>
-<td align="center">结果不为零则跳转(不相等时跳转)</td>
-<td align="right">ZF&#x3D;0</td>
+<td align="left">stdcall</td>
+<td align="center">从右到左依次压栈</td>
+<td align="right">内平栈(函数内部平衡栈，无需调用者参与)</td>
 </tr>
 <tr>
-<td align="left">JS</td>
-<td align="center">结果为负则跳转</td>
-<td align="right">SF&#x3D;1</td>
-</tr>
-<tr>
-<td align="left">JNS</td>
-<td align="center">结果为非负则跳转</td>
-<td align="right">SF&#x3D;0</td>
-</tr>
-<tr>
-<td align="left">JP, JPE</td>
-<td align="center">结果中1的个数为偶数则跳转</td>
-<td align="right">PF&#x3D;1</td>
-</tr>
-<tr>
-<td align="left">JNP, JPO</td>
-<td align="center">结果中1的个数为偶数则跳转</td>
-<td align="right">PF&#x3D;0</td>
-</tr>
-<tr>
-<td align="left">JO</td>
-<td align="center">结果溢出了则跳转</td>
-<td align="right">OF&#x3D;1</td>
-</tr>
-<tr>
-<td align="left">JNO</td>
-<td align="center">结果没有溢出则跳转</td>
-<td align="right">OF&#x3D;0</td>
-</tr>
-<tr>
-<td align="left">JB, JNAE</td>
-<td align="center">小于则跳转 (无符号数)</td>
-<td align="right">CF&#x3D;1</td>
-</tr>
-<tr>
-<td align="left">JNB, JAE</td>
-<td align="center">大于等于则跳转 (无符号数)</td>
-<td align="right">CF&#x3D;0</td>
-</tr>
-<tr>
-<td align="left">JBE, JNA</td>
-<td align="center">小于等于则跳转 (无符号数)</td>
-<td align="right">CF&#x3D;1 or ZF&#x3D;1</td>
-</tr>
-<tr>
-<td align="left">JNBE, JA</td>
-<td align="center">大于则跳转(无符号数)</td>
-<td align="right">CF&#x3D;0 and ZF&#x3D;0</td>
-</tr>
-<tr>
-<td align="left">JL, JNGE</td>
-<td align="center">小于则跳转 (<strong>有符号数</strong>)</td>
-<td align="right">SF≠ OF</td>
-</tr>
-<tr>
-<td align="left">JNL, JGE</td>
-<td align="center">大于等于则跳转 (<strong>有符号数</strong>)</td>
-<td align="right">SF&#x3D;OF</td>
-</tr>
-<tr>
-<td align="left">JLE, JNG</td>
-<td align="center">小于等于则跳转 (<strong>有符号数</strong>)</td>
-<td align="right">ZF&#x3D;1 or SF≠ OF</td>
-</tr>
-<tr>
-<td align="left">JNLE, JG</td>
-<td align="center">大于则跳转(<strong>有符号数</strong>)</td>
-<td align="right">ZF&#x3D;0 and SF&#x3D;OF</td>
+<td align="left">fastcall</td>
+<td align="center">前两个参数依次放入ECX,EDX寄存器，其他参数从右到左依次压栈</td>
+<td align="right">内平栈</td>
 </tr>
 </tbody></table>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><ol>
-<li>JE, JZ 结果为零则跳转(相等时跳转) ZF&#x3D;1</li>
-</ol>
-<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">MOV</span> <span class="hljs-built_in">AL</span>,<span class="hljs-number">1</span><br><span class="hljs-keyword">MOV</span> <span class="hljs-built_in">CL</span>,<span class="hljs-number">1</span><br><span class="hljs-keyword">CMP</span> <span class="hljs-built_in">AL</span>,<span class="hljs-built_in">CL</span><br><span class="hljs-keyword">JE</span> <span class="hljs-number">0X0040102B</span><br></code></pre></td></tr></table></figure>
+<p>在x64汇编环境下，仅有fastcall一种调用约定，前四个参数依次放入RCX,RDX,R8,R9四个寄存器，其他参数从右到左依次压栈，内平栈。</p>
+<h2 id="Windows系统的栈设计"><a href="#Windows系统的栈设计" class="headerlink" title="Windows系统的栈设计"></a>Windows系统的栈设计</h2><p>栈空间的总量由系统分配，从高内存向低内存扩展，即内存减少为栈抬高的方向。</p>
+<h3 id="函数序言"><a href="#函数序言" class="headerlink" title="函数序言"></a>函数序言</h3><p>多数C风格函数的入口会有如下代码：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">push</span> <span class="hljs-built_in">ebp</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">ebp</span>, <span class="hljs-built_in">esp</span><br></code></pre></td></tr></table></figure>
+
+<p>ebp存储了栈底空间地址，此代码保存了之前的栈底，确保栈帧之间的连续性。</p>
+<p>这段代码也被称为<strong>函数序言</strong>， 需要注意的是，不一定所有的C语言函数都严格遵守这个规则。</p>
+<h3 id="栈空间"><a href="#栈空间" class="headerlink" title="栈空间"></a>栈空间</h3><h4 id="栈帧指针"><a href="#栈帧指针" class="headerlink" title="栈帧指针"></a>栈帧指针</h4><p>esp寄存器在不进行人为干涉的情况下，始终存储栈顶地址。</p>
+<p>使用pop，push，call，ret等指令时，都会影响esp寄存器的值。</p>
+<p>esp寄存器也被称为<strong>栈帧指针</strong></p>
+<h4 id="帧基指针"><a href="#帧基指针" class="headerlink" title="帧基指针"></a>帧基指针</h4><p>由于ebp寄存器始终存储栈底，即栈帧的基地址，所以ebp寄存器也被称为<strong>帧基指针</strong>。</p>
+<p>常见的使用方式：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>] <span class="hljs-comment">;获取上一帧的帧基地址</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">0x04</span>] <span class="hljs-comment">;获取函数返回地址</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">0x08</span>] <span class="hljs-comment">;获取函数的第一个参数</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">0x04</span>] <span class="hljs-comment">;获取函数的第一个局部变量</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="局部变量缓冲区"><a href="#局部变量缓冲区" class="headerlink" title="局部变量缓冲区"></a>局部变量缓冲区</h4><p>在函数序言结束后，如果函数内部需要使用局部变量，一般会在栈上开辟局部变量的空间。</p>
+<p>部份编译器在debug模式下编译C语言代码时，会在局部变量空间内填充0xCC，即int 3中断。</p>
+<p>形如下面格式：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">sub</span> <span class="hljs-built_in">esp</span>, <span class="hljs-number">0x40</span> <span class="hljs-comment">;开辟64字节的局部变量空间</span><br><span class="hljs-keyword">push</span> <span class="hljs-built_in">ebx</span>      <br><span class="hljs-keyword">push</span> <span class="hljs-built_in">esi</span><br><span class="hljs-keyword">push</span> <span class="hljs-built_in">edi</span>      <span class="hljs-comment">;保存现场</span><br><span class="hljs-keyword">lea</span> <span class="hljs-built_in">edi</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span> - <span class="hljs-number">0x40</span>]<br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-number">0xcccccccc</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">ecx</span>, <span class="hljs-number">0x10</span><br><span class="hljs-keyword">rep</span> <span class="hljs-keyword">stosd</span>     <span class="hljs-comment">;将开辟出的64字节空间全部用0xcc填充</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="函数尾声"><a href="#函数尾声" class="headerlink" title="函数尾声"></a>函数尾声</h3><p>在函数即将结束时，会销毁开辟的栈空间，并将帧指针与帧基指针还原到函数调用时的状态。</p>
+<p>形如下面格式：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">pop</span> <span class="hljs-built_in">edi</span><br><span class="hljs-keyword">pop</span> <span class="hljs-built_in">esi</span><br><span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebx</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">esp</span>, <span class="hljs-built_in">ebp</span> <span class="hljs-comment">;销毁栈空间</span><br><span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebp</span>      <span class="hljs-comment">;还原帧基指针</span><br><span class="hljs-keyword">ret</span>          <span class="hljs-comment">;变形即 pop eip</span><br></code></pre></td></tr></table></figure>
+
+<p>这样的模板代码也被称为<strong>函数尾声</strong>，需要注意的是，与<strong>函数序言</strong>相同，并不是所有函数都严格遵守这个形式。</p>
+<h3 id="栈平衡"><a href="#栈平衡" class="headerlink" title="栈平衡"></a>栈平衡</h3><p><strong>cdecl</strong>风格的函数一般定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> __cdecl <span class="hljs-title function_">func</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span>;<br></code></pre></td></tr></table></figure>
+
+<p>该函数由调用者平衡栈，即:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">mov</span> <span class="hljs-built_in">ebx</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span> - <span class="hljs-number">0x04</span>]<br><span class="hljs-keyword">push</span> <span class="hljs-built_in">ebx</span>            <span class="hljs-comment">;参数入栈</span><br><span class="hljs-keyword">call</span> func           <span class="hljs-comment">;调用函数</span><br><span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>, <span class="hljs-number">0x04</span>       <span class="hljs-comment">;平衡栈</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="空函数与裸函数区别"><a href="#空函数与裸函数区别" class="headerlink" title="空函数与裸函数区别"></a>空函数与裸函数区别</h2><p>在C语言中，空函数与裸函数对编译器而言完全不同，如下形式的两个函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> __declspec(naked) naked_func(<span class="hljs-type">int</span> i)&#123;<br><br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">empty_func</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span>&#123;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>被 <em>__declspec(naked)</em> 修饰的函数 <em>naked_func</em> 在编译阶段不会生成任何汇编代码，所有工作都需要编码者自行实现。</p>
+<p>而空函数 <em>empty_func</em> 中虽然也没有写任何程序逻辑，但是编译器会为其生成 <strong>函数序言</strong> 、 <strong>函数尾声</strong> 等模板代码。</p>
+<p>这意味着调用一个空函数不会引发异常，但是调用一个未被编码的裸函数时，会发生程序异常（裸函数无法产生返回，debug模式下程序会走入“int 3 海洋”）。</p>
+<h2 id="真正的程序入口"><a href="#真正的程序入口" class="headerlink" title="真正的程序入口"></a>真正的程序入口</h2><h2 id="逆向示例"><a href="#逆向示例" class="headerlink" title="逆向示例"></a>逆向示例</h2><h3 id="寻找程序入口"><a href="#寻找程序入口" class="headerlink" title="寻找程序入口"></a>寻找程序入口</h3><h3 id="定位核心逻辑函数"><a href="#定位核心逻辑函数" class="headerlink" title="定位核心逻辑函数"></a>定位核心逻辑函数</h3><h3 id="反汇编还原为C代码"><a href="#反汇编还原为C代码" class="headerlink" title="反汇编还原为C代码"></a>反汇编还原为C代码</h3>
                 
               </div>
             
@@ -393,12 +368,15 @@
   <a href="/categories/x86%E6%B1%87%E7%BC%96/" class="category-chain-item">x86汇编</a>
   
   
-    <span>></span>
-    
-  <a href="/categories/x86%E6%B1%87%E7%BC%96/JCC/" class="category-chain-item">JCC</a>
-  
-  
 
+      </span>
+    
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/C%E8%AF%AD%E8%A8%80/" class="category-chain-item">C语言</a>
+  
   
 
       </span>
@@ -412,13 +390,13 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%B1%87%E7%BC%96/" class="print-no-link">#汇编</a>
+        <a href="/tags/%E9%80%86%E5%90%91/" class="print-no-link">#逆向</a>
       
-        <a href="/tags/JCC/" class="print-no-link">#JCC</a>
+        <a href="/tags/C/" class="print-no-link">#C</a>
       
-        <a href="/tags/%E6%A0%87%E5%BF%97%E5%AF%84%E5%AD%98%E5%99%A8/" class="print-no-link">#标志寄存器</a>
+        <a href="/tags/%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" class="print-no-link">#调用约定</a>
       
-        <a href="/tags/EFLAGS/" class="print-no-link">#EFLAGS</a>
+        <a href="/tags/%E5%A0%86%E6%A0%88%E5%B9%B3%E8%A1%A1/" class="print-no-link">#堆栈平衡</a>
       
     </div>
   
@@ -430,8 +408,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>JCC速查</div>
-      <div>http://dubhehub.github.io/2015/12/06/1/</div>
+      <div>C语言逆向(1)</div>
+      <div>http://dubhehub.github.io/2023/12/08/2/</div>
     </div>
     <div class="license-meta">
       
@@ -443,7 +421,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>Posted on</div>
-          <div>December 6, 2015</div>
+          <div>December 8, 2023</div>
         </div>
       
       
@@ -475,15 +453,15 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/12/08/2/" title="C语言逆向(1)">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">C语言逆向(1)</span>
-                        <span class="visible-mobile">Previous</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
+                    
+                      <a href="/2015/12/06/1/" title="JCC速查">
+                        <span class="hidden-mobile">JCC速查</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </article>
                 </div>
@@ -503,7 +481,7 @@
         var options = Object.assign(
           {"clientID":"4e301faf3494bc26a994","clientSecret":"eebb8a85e999c28b8ca8828e779dc5138712492c","repo":"blog-comments","owner":"DubheHub","admin":["DubheHub"],"language":"en","labels":["Gitalk"],"perPage":10,"pagerDirection":"last","distractionFreeMode":false,"createIssueManually":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token"},
           {
-            id: '41f1a6a5039b2351c04c463db5fe2098'
+            id: '633b7c72ca2642830391a575d8257b38'
           }
         )
         var gitalk = new Gitalk(options);
