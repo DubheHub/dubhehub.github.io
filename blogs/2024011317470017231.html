@@ -1,0 +1,1010 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon/kali-icon.png">
+  <link rel="icon" href="/img/icon/kali-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Sin">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="本文探讨PE文件结构从磁盘加载到内存中的过程，并通过编程模拟这一过程，从而体现各区块拉伸的细节。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PE结构(3)从磁盘到内存的加载过程">
+<meta property="og:url" content="http://dubhehub.github.io/blogs/2024011317470017231.html">
+<meta property="og:site_name" content="天枢">
+<meta property="og:description" content="本文探讨PE文件结构从磁盘加载到内存中的过程，并通过编程模拟这一过程，从而体现各区块拉伸的细节。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://source.unsplash.com/random/300x300/?hacker,computer,security&post_id=20240113174717231">
+<meta property="article:published_time" content="2024-01-13T17:47:00.000Z">
+<meta property="article:modified_time" content="2024-01-13T17:47:01.000Z">
+<meta property="article:author" content="Sin">
+<meta property="article:tag" content="逆向">
+<meta property="article:tag" content="PE">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://source.unsplash.com/random/300x300/?hacker,computer,security&post_id=20240113174717231">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>PE结构(3)从磁盘到内存的加载过程 - 天枢</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"dubhehub.github.io","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":35,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":false,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"I7JIKNOgG13mOAPcYwH4DNqu-MdYXbMMI","app_key":"ipVt4ESADPZqITQnSwmA8XTG","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>天枢</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/bg/bg-post.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="PE结构(3)从磁盘到内存的加载过程"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-01-13 17:47" pubdate>
+          January 13, 2024 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          718 words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          6 mins
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> views
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="上善若水"
+        id="heading-9e645f8549b68372ec91a2d8e3b5c327" role="tab" data-toggle="collapse" href="#collapse-9e645f8549b68372ec91a2d8e3b5c327"
+        aria-expanded="true"
+      >
+        上善若水
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-9e645f8549b68372ec91a2d8e3b5c327"
+           role="tabpanel" aria-labelledby="heading-9e645f8549b68372ec91a2d8e3b5c327">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem collapsed
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="C语言"
+        id="heading-d117f5dea6b7959c82d4fdb7490c555d" role="tab" data-toggle="collapse" href="#collapse-d117f5dea6b7959c82d4fdb7490c555d"
+        aria-expanded="false"
+      >
+        C语言
+        <span class="list-group-count">(3)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse " id="collapse-d117f5dea6b7959c82d4fdb7490c555d"
+           role="tabpanel" aria-labelledby="heading-d117f5dea6b7959c82d4fdb7490c555d">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/202312081021542315.html" title="C语言逆向(1)函数调用"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(1)函数调用</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2023121121101963755.html" title="C语言逆向(2)if语句与JCC"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(2)if语句与JCC</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2023121510590026419.html" title="C语言逆向(3)内存对齐与数组"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(3)内存对齐与数组</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="PE"
+        id="heading-3acf83834396fa1c878707132ead62b8" role="tab" data-toggle="collapse" href="#collapse-3acf83834396fa1c878707132ead62b8"
+        aria-expanded="true"
+      >
+        PE
+        <span class="list-group-count">(12)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-3acf83834396fa1c878707132ead62b8"
+           role="tabpanel" aria-labelledby="heading-3acf83834396fa1c878707132ead62b8">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/2024010716170052947.html" title="PE结构(1)DOS/NT/PE/OP头信息"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(1)DOS/NT/PE/OP头信息</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024051015000029832.html" title="PE结构(10)绑定导入表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(10)绑定导入表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024051114490015619.html" title="PE结构(11)导入表注入DLL"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(11)导入表注入DLL</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/202401112059001543.html" title="PE结构(2)节表/区块表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(2)节表/区块表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024011317470017231.html" title="PE结构(3)从磁盘到内存的加载过程"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">PE结构(3)从磁盘到内存的加载过程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024043014020040528.html" title="PE结构(4)导出表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(4)导出表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050415400062615.html" title="PE结构(5)新增节"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(5)新增节</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050500180037226.html" title="PE结构(6)重定位表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(6)重定位表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/20240506163100318.html" title="PE结构(7)修复重定位表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(7)修复重定位表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050701250065136.html" title="PE结构(8)转移导出表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(8)转移导出表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/PE/" class="list-group-item list-group-item-action">
+          <span class="category-post">More...</span>
+        </a>
+        
+  </div>
+
+        
+      </div>
+    </div>
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem collapsed
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="数据结构"
+        id="heading-0fea7c47d93da5689f31820ee525b367" role="tab" data-toggle="collapse" href="#collapse-0fea7c47d93da5689f31820ee525b367"
+        aria-expanded="false"
+      >
+        数据结构
+        <span class="list-group-count">(1)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse " id="collapse-0fea7c47d93da5689f31820ee525b367"
+           role="tabpanel" aria-labelledby="heading-0fea7c47d93da5689f31820ee525b367">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/2024060523010046412.html" title="Vector的实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Vector的实现</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">PE结构(3)从磁盘到内存的加载过程</h1>
+            
+              <p id="updated-time" class="note note-info" style="">
+                
+                  
+                    Last updated on January 13, 2024 pm
+                  
+                
+              </p>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="模拟PE加载过程"><a href="#模拟PE加载过程" class="headerlink" title="模拟PE加载过程"></a>模拟PE加载过程</h1><p>将文件从磁盘load到内存，再从内存中解析PE信息，然后开辟新内存进行“拉伸”操作。</p>
+<h2 id="定义PE结构体"><a href="#定义PE结构体" class="headerlink" title="定义PE结构体"></a>定义PE结构体</h2><p>由于PE中的内容全部是按1字节进行结构体对齐，因此在定义结构体时应当注意对齐方式，以及保存编译环境对齐字节。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> PE</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> PE</span><br><br><span class="hljs-keyword">typedef</span> <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> BYTE, * lpBYTE;<br><span class="hljs-keyword">typedef</span> <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span> WORD, * lpWORD;<br><span class="hljs-keyword">typedef</span> <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> DWORD, * lpDWORD;<br><br><span class="hljs-meta">#<span class="hljs-keyword">pragma</span> pack(push)</span><br><span class="hljs-meta">#<span class="hljs-keyword">pragma</span> pack(1)</span><br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">PE_HEADER_DOS</span>&#123;</span><br>	WORD e_magic;<br>	WORD e_cblp;<br>	WORD e_cp;<br>	WORD e_crlc;<br>	WORD e_cparhdr;<br>	WORD e_minalloc;<br>	WORD e_maxalloc;<br>	WORD e_ss;<br>	WORD e_sp;<br>	WORD e_csum;<br>	WORD e_ip;<br>	WORD e_cs;<br>	WORD e_lfarlc;<br>	WORD e_ovno;<br>	WORD e_res[<span class="hljs-number">4</span>];<br>	WORD e_oemid;<br>	WORD e_oeminfo;<br>	WORD e_res2[<span class="hljs-number">10</span>];<br>	DWORD e_lfanew;<br>&#125;PEHDOS, *lpPEHDOS;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">PE_HEADERS_PE</span> &#123;</span><br>	DWORD Signature;<br>	WORD Machine;<br>	WORD NumberOfSections;<br>	DWORD TimeDateStamp;<br>	DWORD PointerToSymbolTable;<br>	DWORD NumberOfSymbols;<br>	WORD SizeOfOptionalHeader;<br>	WORD Characteristics;<br>&#125;PEHPE, *lpPEHPE;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">PE_HEADERS_OPTIONAL</span> &#123;</span><br>	WORD Magic;<br>	BYTE MajorLinkerVersion;<br>	BYTE MinorLinkerVersion;<br>	DWORD SizeOfCode;<br>	DWORD SizeOfInitializedData;<br>	DWORD SizeOfUninitializedData;<br>	DWORD AddressOfEntryPoint;<br>	DWORD BaseOfCode;<br>	DWORD BaseOfData;<br>	DWORD ImageBase;<br>	DWORD SectionAlignment;<br>	DWORD FileAlignment;<br>	WORD MajorOperatingSystemVersion;<br>	WORD MinorOperatingSystemVersion;<br>	WORD MajorImageVersion;<br>	WORD MinorImageVersion;<br>	WORD MajorSubsystemVersion;<br>	WORD MinorSubsystemVersion;<br>	DWORD Win32VersionValue;<br>	DWORD SizeOfImage;<br>	DWORD SizeOfHeader;<br>	DWORD CheckSum;<br>	WORD Subsystem;<br>	WORD DllCharacteristics;<br>	DWORD SizeOfStackReserve;<br>	DWORD SizeOfStackCommit;<br>	DWORD SizeOfHeapReserve;<br>	DWORD SizeOfHeapCommit;<br>	DWORD LoaderFlags;<br>	DWORD NmberOfRvaAndSizes;<br>&#125;PEHOPTIONAL, *lpPEHOPTIONAL;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">PE_HEADERS_TABLE_ITEM</span> &#123;</span><br>	BYTE name[<span class="hljs-number">8</span>];<br>	DWORD VirtualSize;<br>	DWORD VirtualAddress;<br>	DWORD SizeOfRawData;<br>	DWORD PointerToRawData;<br>	DWORD PointerToRelocations;<br>	DWORD PointerToLinenumbers;<br>	WORD NumberOfRelocations;<br>	WORD NumberOfLinenumbers;<br>	DWORD Characteristics;<br>&#125; PETable, *lpPETable;<br><br><span class="hljs-meta">#<span class="hljs-keyword">pragma</span> pack(pop)</span><br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">PE</span> &#123;</span><br>	lpPEHDOS h_dos;<br>	lpPEHPE h_pe;<br>	lpPEHOPTIONAL h_op;<br>	lpPETable pet;<br>&#125;PEFILE, *lpPEFILE;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">LoadFileToMemory</span><span class="hljs-params">(FILE* pFile, lpPEFILE lpPEFile)</span>;<br><br><span class="hljs-type">void</span>* <span class="hljs-title function_">CreateImageBuffer</span><span class="hljs-params">(lpPEFILE lpPEFile)</span>;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">DumpImageToFile</span><span class="hljs-params">(FILE* pFile, <span class="hljs-type">void</span>* imageBase, lpPEFILE lpPEFile)</span>;<br><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span> <span class="hljs-comment">// !PE.h</span></span><br></code></pre></td></tr></table></figure>
+
+<h2 id="文件从磁盘到内存"><a href="#文件从磁盘到内存" class="headerlink" title="文件从磁盘到内存"></a>文件从磁盘到内存</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">LoadFileToMemory</span><span class="hljs-params">(FILE* pFile, lpPEFILE lpPEFile)</span> &#123;<br>	<span class="hljs-type">int</span> fileLength = <span class="hljs-number">0</span>;<br>	fseek(pFile, <span class="hljs-number">0</span>, SEEK_END);<br>	fileLength = ftell(pFile);<br>	fseek(pFile, <span class="hljs-number">0</span>, SEEK_SET);<br>	BYTE* start = new BYTE[fileLength]&#123; <span class="hljs-number">0</span> &#125;;<br>	<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; fileLength; i++) &#123;<br>		start[i] = fgetc(pFile);<br>	&#125;<br>	<span class="hljs-comment">//设置DOS头位置</span><br>	lpPEFile-&gt;h_dos = (lpPEHDOS)start;<br>	<span class="hljs-comment">//设置PE头位置</span><br>	<span class="hljs-type">int</span> peOffset = lpPEFile-&gt;h_dos-&gt;e_lfanew;<br>	lpPEFile-&gt;h_pe = (lpPEHPE)((DWORD)start + peOffset);<br>	<span class="hljs-comment">//设置OP头位置</span><br>	DWORD peAddress = (DWORD)lpPEFile-&gt;h_pe;<br>	lpPEFile-&gt;h_op = (lpPEHOPTIONAL)(peAddress + <span class="hljs-number">24</span>);<br>	<span class="hljs-comment">//设置节表位置</span><br>	WORD sizeOfOptionalHeader = lpPEFile-&gt;h_pe-&gt;SizeOfOptionalHeader;<br>	lpPEFile-&gt;pet = (lpPETable)(peAddress + <span class="hljs-number">24</span> + sizeOfOptionalHeader);<br><br>	<span class="hljs-keyword">return</span> fileLength;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="解析内存PE信息"><a href="#解析内存PE信息" class="headerlink" title="解析内存PE信息"></a>解析内存PE信息</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span>* <span class="hljs-title function_">CreateImageBuffer</span><span class="hljs-params">(lpPEFILE peFile)</span> &#123;<br>	<span class="hljs-comment">//PE属性</span><br>	lpPEHDOS lpHdos = peFile-&gt;h_dos;<br>	<span class="hljs-keyword">if</span> (lpHdos == nullptr) &#123;<br>		<span class="hljs-keyword">return</span> nullptr;<br>	&#125;<br>	DWORD imageBaseSrc = (DWORD)lpHdos;<br>	lpPEHPE lpHpe = peFile-&gt;h_pe;<br>	<span class="hljs-keyword">if</span> (lpHpe == nullptr) &#123;<br>		<span class="hljs-keyword">return</span> nullptr;<br>	&#125;<br>	lpPEHOPTIONAL lpHop = peFile-&gt;h_op;<br>	<span class="hljs-keyword">if</span> (lpHop == nullptr) &#123;<br>		<span class="hljs-keyword">return</span> nullptr;<br>	&#125;<br>	lpPETable lpTable = peFile-&gt;pet;<br>	<span class="hljs-keyword">if</span> (lpTable == nullptr) &#123;<br>		<span class="hljs-keyword">return</span> nullptr;<br>	&#125;<br><br>	<span class="hljs-comment">//开辟内存映像空间</span><br>	DWORD sizeOfImage = lpHop-&gt;SizeOfImage;<br>	<span class="hljs-type">void</span> *pMemoryBuffer = new BYTE[sizeOfImage];<br>	DWORD imageBaseDst = (DWORD)pMemoryBuffer;<br><br>	<span class="hljs-comment">//拷贝PE头</span><br>	DWORD sizeOfHeader = lpHop-&gt;SizeOfHeader;<br>	<span class="hljs-built_in">memcpy</span>(pMemoryBuffer, (<span class="hljs-type">void</span>*)imageBaseSrc, sizeOfHeader);<br><br>	<span class="hljs-comment">//遍历节表，拷贝每一节</span><br>	WORD numberOfSections = lpHpe-&gt;NumberOfSections;<br>	<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; numberOfSections; i++) &#123;<br>		lpPETable t = (lpTable + i);<br>		DWORD pointerToRawData = t-&gt;PointerToRawData;<br>		DWORD sizeOfRawData = t-&gt;SizeOfRawData;<br>		DWORD virtualAddress = t-&gt;VirtualAddress;<br>		<span class="hljs-built_in">memcpy</span>((<span class="hljs-type">void</span>*)(imageBaseDst + virtualAddress), (<span class="hljs-type">void</span>*)(imageBaseSrc + pointerToRawData), sizeOfRawData);<br>	&#125;<br><br>	<span class="hljs-keyword">return</span> pMemoryBuffer;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="从内存中还原到磁盘"><a href="#从内存中还原到磁盘" class="headerlink" title="从内存中还原到磁盘"></a>从内存中还原到磁盘</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">DumpImageToFile</span><span class="hljs-params">(FILE* pFile, <span class="hljs-type">void</span>* imageBase, lpPEFILE peFile)</span> &#123;<br>	fseek(pFile, <span class="hljs-number">0</span>, SEEK_SET);<br><br>	<span class="hljs-comment">//PE属性</span><br>	lpPEHDOS lpHdos = peFile-&gt;h_dos;<br>	<span class="hljs-keyword">if</span> (lpHdos == nullptr) &#123;<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br>	lpPEHPE lpHpe = peFile-&gt;h_pe;<br>	<span class="hljs-keyword">if</span> (lpHpe == nullptr) &#123;<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br>	lpPEHOPTIONAL lpHop = peFile-&gt;h_op;<br>	<span class="hljs-keyword">if</span> (lpHop == nullptr) &#123;<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br>	lpPETable lpTable = peFile-&gt;pet;<br>	<span class="hljs-keyword">if</span> (lpTable == nullptr) &#123;<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br>	<br>	<span class="hljs-comment">//拷贝PE头</span><br>	DWORD sizeOfHeader = lpHop-&gt;SizeOfHeader;<br>	<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; sizeOfHeader; i++) &#123;<br>		BYTE byte = *((lpBYTE)imageBase + i);<br>		fputc(byte, pFile);<br>	&#125;<br><br>	<span class="hljs-comment">//遍历节表，拷贝每一节</span><br>	WORD numberOfSections = lpHpe-&gt;NumberOfSections;<br>	<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> num = <span class="hljs-number">0</span>; num &lt; numberOfSections; num++) &#123;<br>		lpPETable t = (lpTable + num);<br>		DWORD pointerToRawData = t-&gt;PointerToRawData;<br>		DWORD sizeOfRawData = t-&gt;SizeOfRawData;<br>		DWORD virtualAddress = t-&gt;VirtualAddress;<br>		<br>		fseek(pFile, pointerToRawData, SEEK_SET);<br><br>		<span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; sizeOfRawData; i++) &#123;<br>			BYTE byte = *((lpBYTE)imageBase + virtualAddress + i);<br>			fputc(byte, pFile);<br>		&#125;<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="测试程序"><a href="#测试程序" class="headerlink" title="测试程序"></a>测试程序</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;memory.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;PE.h&quot;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>	<span class="hljs-comment">//将指定文件加载到内存，并解析PE信息到PEFILE结构体</span><br>	PEFILE peFile&#123; <span class="hljs-number">0</span> &#125;;<br>	FILE *pFile = fopen(<span class="hljs-string">&quot;D:\\src.exe&quot;</span>, <span class="hljs-string">&quot;rb&quot;</span>);<br>	<span class="hljs-type">int</span> fileLength = LoadFileToMemory(pFile, &amp;peFile);<br>	<span class="hljs-type">void</span> *pMemoryBuffer = nullptr;<br>	fclose(pFile);<br><br>	<span class="hljs-comment">//根据PE信息创建内存映像</span><br>	pMemoryBuffer = CreateImageBuffer(&amp;peFile);<br><br>	<span class="hljs-comment">//根据内存映像dump到磁盘</span><br>	pFile = fopen(<span class="hljs-string">&quot;D:\\dst.exe&quot;</span>, <span class="hljs-string">&quot;wb&quot;</span>);<br>	DumpImageToFile(pFile, pMemoryBuffer, &amp;peFile);<br><br>	delete[] pMemoryBuffer;<br>	delete peFile.h_dos;<br>&#125;<br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/" class="category-chain-item">上善若水</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/PE/" class="category-chain-item">PE</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%80%86%E5%90%91/" class="print-no-link">#逆向</a>
+      
+        <a href="/tags/PE/" class="print-no-link">#PE</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>PE结构(3)从磁盘到内存的加载过程</div>
+      <div>http://dubhehub.github.io/blogs/2024011317470017231.html</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Sin</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>January 13, 2024</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - Non-commercial">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - Share-alike">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/blogs/2024043014020040528.html" title="PE结构(4)导出表">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">PE结构(4)导出表</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/blogs/202401112059001543.html" title="PE结构(2)节表/区块表">
+                        <span class="hidden-mobile">PE结构(2)节表/区块表</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="gitalk-container"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#gitalk-container', function() {
+      Fluid.utils.createCssLink('/css/gitalk.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/gitalk/1.8.0/gitalk.min.js', function() {
+        var options = Object.assign(
+          {"clientID":"4e301faf3494bc26a994","clientSecret":"eebb8a85e999c28b8ca8828e779dc5138712492c","repo":"blog-comments","owner":"DubheHub","admin":["DubheHub"],"language":"en","labels":["Gitalk"],"perPage":10,"pagerDirection":"last","distractionFreeMode":false,"createIssueManually":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","id":"location.pathname"},
+          {
+            id: '6d5d1d7956392166dc8d761f37fa7721'
+          }
+        )
+        var gitalk = new Gitalk(options);
+        gitalk.render('gitalk-container');
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        Page View: 
+        <span id="busuanzi_value_site_pv"></span>
+        
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        Unique Visitor: 
+        <span id="busuanzi_value_site_uv"></span>
+        
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

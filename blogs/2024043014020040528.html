@@ -1,0 +1,1042 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon/kali-icon.png">
+  <link rel="icon" href="/img/icon/kali-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Sin">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="从PE文件的导出表中枚举所有导出函数。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PE结构(4)导出表">
+<meta property="og:url" content="http://dubhehub.github.io/blogs/2024043014020040528.html">
+<meta property="og:site_name" content="天枢">
+<meta property="og:description" content="从PE文件的导出表中枚举所有导出函数。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://source.unsplash.com/random/300x300/?hacker,computer,security&post_id=2024043014020040528">
+<meta property="article:published_time" content="2024-04-30T14:02:00.000Z">
+<meta property="article:modified_time" content="2024-04-30T15:30:00.000Z">
+<meta property="article:author" content="Sin">
+<meta property="article:tag" content="逆向">
+<meta property="article:tag" content="PE">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://source.unsplash.com/random/300x300/?hacker,computer,security&post_id=2024043014020040528">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>PE结构(4)导出表 - 天枢</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"dubhehub.github.io","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":35,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":false,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"I7JIKNOgG13mOAPcYwH4DNqu-MdYXbMMI","app_key":"ipVt4ESADPZqITQnSwmA8XTG","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>天枢</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/bg/bg-post.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="PE结构(4)导出表"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-04-30 14:02" pubdate>
+          April 30, 2024 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.1k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 mins
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> views
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="上善若水"
+        id="heading-9e645f8549b68372ec91a2d8e3b5c327" role="tab" data-toggle="collapse" href="#collapse-9e645f8549b68372ec91a2d8e3b5c327"
+        aria-expanded="true"
+      >
+        上善若水
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-9e645f8549b68372ec91a2d8e3b5c327"
+           role="tabpanel" aria-labelledby="heading-9e645f8549b68372ec91a2d8e3b5c327">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem collapsed
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="C语言"
+        id="heading-d117f5dea6b7959c82d4fdb7490c555d" role="tab" data-toggle="collapse" href="#collapse-d117f5dea6b7959c82d4fdb7490c555d"
+        aria-expanded="false"
+      >
+        C语言
+        <span class="list-group-count">(3)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse " id="collapse-d117f5dea6b7959c82d4fdb7490c555d"
+           role="tabpanel" aria-labelledby="heading-d117f5dea6b7959c82d4fdb7490c555d">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/202312081021542315.html" title="C语言逆向(1)函数调用"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(1)函数调用</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2023121121101963755.html" title="C语言逆向(2)if语句与JCC"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(2)if语句与JCC</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2023121510590026419.html" title="C语言逆向(3)内存对齐与数组"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(3)内存对齐与数组</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="PE"
+        id="heading-3acf83834396fa1c878707132ead62b8" role="tab" data-toggle="collapse" href="#collapse-3acf83834396fa1c878707132ead62b8"
+        aria-expanded="true"
+      >
+        PE
+        <span class="list-group-count">(12)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-3acf83834396fa1c878707132ead62b8"
+           role="tabpanel" aria-labelledby="heading-3acf83834396fa1c878707132ead62b8">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/2024010716170052947.html" title="PE结构(1)DOS/NT/PE/OP头信息"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(1)DOS/NT/PE/OP头信息</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024051015000029832.html" title="PE结构(10)绑定导入表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(10)绑定导入表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024051114490015619.html" title="PE结构(11)导入表注入DLL"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(11)导入表注入DLL</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/202401112059001543.html" title="PE结构(2)节表/区块表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(2)节表/区块表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024011317470017231.html" title="PE结构(3)从磁盘到内存的加载过程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(3)从磁盘到内存的加载过程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024043014020040528.html" title="PE结构(4)导出表"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">PE结构(4)导出表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050415400062615.html" title="PE结构(5)新增节"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(5)新增节</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050500180037226.html" title="PE结构(6)重定位表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(6)重定位表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/20240506163100318.html" title="PE结构(7)修复重定位表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(7)修复重定位表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050701250065136.html" title="PE结构(8)转移导出表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(8)转移导出表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/PE/" class="list-group-item list-group-item-action">
+          <span class="category-post">More...</span>
+        </a>
+        
+  </div>
+
+        
+      </div>
+    </div>
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem collapsed
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="数据结构"
+        id="heading-0fea7c47d93da5689f31820ee525b367" role="tab" data-toggle="collapse" href="#collapse-0fea7c47d93da5689f31820ee525b367"
+        aria-expanded="false"
+      >
+        数据结构
+        <span class="list-group-count">(1)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse " id="collapse-0fea7c47d93da5689f31820ee525b367"
+           role="tabpanel" aria-labelledby="heading-0fea7c47d93da5689f31820ee525b367">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/2024060523010046412.html" title="Vector的实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Vector的实现</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">PE结构(4)导出表</h1>
+            
+              <p id="updated-time" class="note note-info" style="">
+                
+                  
+                    Last updated on April 30, 2024 pm
+                  
+                
+              </p>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="导出表概览"><a href="#导出表概览" class="headerlink" title="导出表概览"></a>导出表概览</h1><h2 id="所在位置"><a href="#所在位置" class="headerlink" title="所在位置"></a>所在位置</h2><p>首先我们观察PE结构的OP头结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">PE_HEADERS_OPTIONAL</span> &#123;</span><br>	...<br>	PE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBERSOF_DIRECTORY_ENTRY];<br>&#125;PEHOPTIONAL, *lpPEHOPTIONAL;<br></code></pre></td></tr></table></figure>
+
+<p>在OP头结构的最后一个结构体数组中，存放所有数据目录页。<strong>IMAGE_NUMBERSOF_DIRECTORY_ENTRY</strong>的值固定为15。</p>
+<p>数据目录页结构如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">PE_DATA_DIRECTORY</span> &#123;</span><br>	DWORD VirtualAddress;<br>	DWORD Size;<br>&#125;PE_DATA_DIRECTORY, *lpPe_DATA_DIRECTORY;<br></code></pre></td></tr></table></figure>
+
+<p>其中，VirtualAddress是一个RVA, Size成员则基本没有意义。</p>
+<div class="note note-info">
+            <p>RVA，即在虚拟内存中的相对地址，或者说是基于Imagebase的内存偏移量。<br>与之对应的概念是FOA，即基于文件起始地址的偏移量。<br>RVA与FOA之间存在转换关系。<br><a href="https://dubhehub.github.io/blogs/2024050116220046929.html">PE结构(番外)RVA与FOA</a></p>
+          </div>
+
+<p>通过VirtualAddress我们可以找到指定的数据目录页所指向的数据表位于文件或内存中的具体位置。</p>
+<p>导出表的数据目录页，即数组<em>DataDirectory</em>的第一个元素，即*DataDirectory[0]*。</p>
+<p>将该数据目录页的VirtualAddress成员读取，转换为FOA，则可以定位导出表在文件中的位置。</p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p>导出表的数据结构如下（内存1字节对齐）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">DATA_EXPORT_DIRECTORY</span> &#123;</span><br>	DWORD   Characteristics;<br>	DWORD   TimeDateStamp;<br>	WORD    MajorVersion;<br>	WORD    MinorVersion;<br>	DWORD   Name;<br>	DWORD   Base;					<span class="hljs-comment">//导出函数的最小序号</span><br>	DWORD   NumberOfFunctions;		<span class="hljs-comment">//导出函数个数，不准确。计算公式：最大序号 - 最小序号 + 1</span><br>	DWORD   NumberOfNames;<br>	DWORD   AddressOfFunctions;     <span class="hljs-comment">// RVA from base of image</span><br>	DWORD   AddressOfNames;         <span class="hljs-comment">// RVA from base of image</span><br>	DWORD   AddressOfNameOrdinals;  <span class="hljs-comment">// RVA from base of image</span><br>&#125; DATA_EXPORT_DIRECTORY, * PDATA_EXPORT_DIRECTORY;<br></code></pre></td></tr></table></figure>
+
+<p>其中较为重要的当属:</p>
+<ol>
+<li>AddressOfFunctions : 函数表，存储导出函数地址(RVA)，即四字节整数数组：DWORD[]</li>
+<li>AddressOfNames : 名称表，存储导出函数名字的地址(RVA)，即四字节整数数组：DWORD[]</li>
+<li>AddressOfNameOrdinals : 序号表，存储导出函数序号（RVA），即两字节整数数组：WORD[]</li>
+</ol>
+<div class="note note-danger">
+            <p>需要注意的是，序号表中存储的并不是真正的导出序号。<br>而是 导出序号 - Base 的值。即每个函数的序号，相对于最小序号的偏移量。<br>我理解这是一种防溢出的手段，毕竟序号表是两字节整形数组，能表达的序号长度有限。<br>而实际导出函数，也不太可能一个文件导出几十万个函数来吧，所以存储偏移量就足够了。</p>
+          </div>
+
+<h2 id="获取导出函数的逻辑"><a href="#获取导出函数的逻辑" class="headerlink" title="获取导出函数的逻辑"></a>获取导出函数的逻辑</h2><h3 id="已知函数的名称"><a href="#已知函数的名称" class="headerlink" title="已知函数的名称"></a>已知函数的名称</h3><p>只有以名称导出的函数，才会存在于<em>AddressOfNames</em>名称表中。</p>
+<p>首先遍历名称表，获取指向名称的指针，而后比对名称是否一致。若一致，则从序号表中获取其序号，然后通过函数表获取函数地址。</p>
+<p>伪代码逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java">String[] NameTable;<span class="hljs-comment">//名称表</span><br>Short[] OrderTable;<span class="hljs-comment">//序号表</span><br>Integer[] FuncTable;<span class="hljs-comment">//函数表</span><br><br><span class="hljs-type">String</span> <span class="hljs-variable">targetName</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;target&quot;</span>;<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; NameTable.size(); i++&gt;)&#123;<br>	<span class="hljs-keyword">if</span>(NameTable[i] == targetName)&#123;<br>		<span class="hljs-type">int</span> <span class="hljs-variable">funcIndex</span> <span class="hljs-operator">=</span> OrderTable[i];<br>		<span class="hljs-keyword">return</span> FuncTable[funcIndex]<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="已知函数序号"><a href="#已知函数序号" class="headerlink" title="已知函数序号"></a>已知函数序号</h3><p>若已知函数序号，则可以直接从函数表中获取函数。</p>
+<p>直接将序号减去Base的值，然后从函数表中获取即可。</p>
+<p>伪代码逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">Integer</span> <span class="hljs-variable">Base</span> <span class="hljs-operator">=</span> ExportTable.Base;<br>Integer[] FuncTable;<span class="hljs-comment">//函数表</span><br><span class="hljs-type">Integer</span> <span class="hljs-variable">order</span> <span class="hljs-operator">=</span> <span class="hljs-number">9</span>;<span class="hljs-comment">//已知函数导出序号</span><br><span class="hljs-keyword">return</span> FuncTable[<span class="hljs-number">9</span> - Base];<br></code></pre></td></tr></table></figure>
+
+<h1 id="编程实现"><a href="#编程实现" class="headerlink" title="编程实现"></a>编程实现</h1><p>主函数入口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;PEStruct.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;PE.h&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">PrintExportTable</span><span class="hljs-params">(DATA_EXPORT_DIRECTORY table, lpPEFILE lpPEFile)</span>;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>	<span class="hljs-comment">//将指定文件加载到内存，并解析PE信息到PEFILE结构体</span><br>	PEFILE peFile&#123; <span class="hljs-number">0</span> &#125;;<br>	FILE* pFile = fopen(<span class="hljs-string">&quot;D:\\TestDLL.dll&quot;</span>, <span class="hljs-string">&quot;rb&quot;</span>);<br>	<span class="hljs-type">int</span> fileLength = LoadFileToMemory(pFile, &amp;peFile);<br>	<span class="hljs-type">void</span>* pMemoryBuffer = nullptr;<br>	fclose(pFile);<br><br>	<span class="hljs-keyword">if</span> (peFile.h_pe == nullptr) &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>	&#125;<br><br>	PDATA_EXPORT_DIRECTORY lpExportTable = nullptr;<br>	GetExportTable(&amp;lpExportTable, &amp;peFile);<br>	<span class="hljs-keyword">if</span> (lpExportTable == nullptr) &#123;<br>		<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>	&#125;<br><br>	PrintExportTable(*lpExportTable, &amp;peFile);<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>打印导出表函数的实现：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> <span class="hljs-title function_">PrintExportTable</span><span class="hljs-params">(DATA_EXPORT_DIRECTORY table, lpPEFILE lpPEFile)</span> &#123;<br>	DWORD imageBase = (DWORD)lpPEFile-&gt;h_dos;<br>	<br>	<span class="hljs-type">char</span>* name = (<span class="hljs-type">char</span>*)(Rva2Foa(table.Name, lpPEFile) + imageBase);<br>	WORD base = table.Base;<br>	DWORD funcNum = table.NumberOfFunctions;<br>	DWORD nameNum = table.NumberOfNames;<br>	DWORD funcTableRva = table.AddressOfFunctions;<br>	DWORD funcTableFoa = Rva2Foa(funcTableRva, lpPEFile) + imageBase;<br>	DWORD nameTableRva = table.AddressOfNames;<br>	DWORD nameTableFoa = Rva2Foa(nameTableRva, lpPEFile) + imageBase;<br>	DWORD orderTableRva = table.AddressOfNameOrdinals;<br>	DWORD orderTableFoa = Rva2Foa(orderTableRva, lpPEFile) + imageBase;<br><br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;导出表指向文件：%s\r\n&quot;</span>, name);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;起始序号：%d\r\n&quot;</span>, base);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;导出函数总数：%d, 名称导出总数:%d\r\n&quot;</span>, funcNum, nameNum);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;函数表RVA：0x%x, FOA: 0x%x\r\n&quot;</span>, funcTableRva, funcTableFoa);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;名称表RVA：0x%x, FOA: 0x%x\r\n&quot;</span>, nameTableRva, nameTableFoa);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;序号表RVA：0x%x, FOA: 0x%x\r\n&quot;</span>, orderTableRva, orderTableFoa);<br>	<br>	DWORD* nameTable = (DWORD*)nameTableFoa;<br>	WORD* orderTable = (WORD*)orderTableFoa;<br>	DWORD* funcTable = (DWORD*)funcTableFoa;<br><br>	<span class="hljs-keyword">for</span> (WORD i = base; i &lt;= funcNum - <span class="hljs-number">1</span> + base; i++) &#123;<br>		<span class="hljs-keyword">if</span> (funcTable[i-base] == <span class="hljs-literal">NULL</span>) &#123;<br>			<span class="hljs-keyword">continue</span>;<br>		&#125;<br>		WORD order = i;<br>		<span class="hljs-type">char</span>* name = nullptr;<br>		DWORD funcRva = funcTable[i - base];<br>		DWORD funcFoa = Rva2Foa(funcRva, lpPEFile);<br>		DWORD funcAddr = funcFoa + imageBase;<br>		<span class="hljs-comment">//搜一下序号表，看能不能找到名字</span><br>		<span class="hljs-keyword">for</span> (DWORD j = <span class="hljs-number">0</span>; j &lt; nameNum; j++) &#123;<br>			<span class="hljs-keyword">if</span> (orderTable[j] != i-base) &#123;<br>				<span class="hljs-keyword">continue</span>;<br>			&#125;<br>			<span class="hljs-comment">//能搜到，拿到名字</span><br>			name = (<span class="hljs-type">char</span>*)(Rva2Foa(nameTable[j], lpPEFile) + imageBase);<br>			<span class="hljs-keyword">break</span>;<br>		&#125;<br>		<span class="hljs-keyword">if</span> (name == nullptr) &#123;<br>			name = (<span class="hljs-type">char</span>*)<span class="hljs-string">&quot;NO_NAME&quot;</span>;<br>		&#125;<br>		<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;函数: %s 的序号是 %d, RVA: 0x%x, FOA: 0x%x 地址:0x%x \r\n&quot;</span>,<br>			name, order, funcRva, funcFoa, funcAddr);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/" class="category-chain-item">上善若水</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/PE/" class="category-chain-item">PE</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%80%86%E5%90%91/" class="print-no-link">#逆向</a>
+      
+        <a href="/tags/PE/" class="print-no-link">#PE</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>PE结构(4)导出表</div>
+      <div>http://dubhehub.github.io/blogs/2024043014020040528.html</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Sin</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>April 30, 2024</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - Non-commercial">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - Share-alike">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/blogs/2024050116220046929.html" title="PE结构(番外)RVA与FOA">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">PE结构(番外)RVA与FOA</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/blogs/2024011317470017231.html" title="PE结构(3)从磁盘到内存的加载过程">
+                        <span class="hidden-mobile">PE结构(3)从磁盘到内存的加载过程</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="gitalk-container"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#gitalk-container', function() {
+      Fluid.utils.createCssLink('/css/gitalk.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/gitalk/1.8.0/gitalk.min.js', function() {
+        var options = Object.assign(
+          {"clientID":"4e301faf3494bc26a994","clientSecret":"eebb8a85e999c28b8ca8828e779dc5138712492c","repo":"blog-comments","owner":"DubheHub","admin":["DubheHub"],"language":"en","labels":["Gitalk"],"perPage":10,"pagerDirection":"last","distractionFreeMode":false,"createIssueManually":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","id":"location.pathname"},
+          {
+            id: '5b1ce805574836f8a504ea1873830ca9'
+          }
+        )
+        var gitalk = new Gitalk(options);
+        gitalk.render('gitalk-container');
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        Page View: 
+        <span id="busuanzi_value_site_pv"></span>
+        
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        Unique Visitor: 
+        <span id="busuanzi_value_site_uv"></span>
+        
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

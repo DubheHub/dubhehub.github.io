@@ -1,0 +1,1191 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=dark>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/icon/kali-icon.png">
+  <link rel="icon" href="/img/icon/kali-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Sin">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C语言逆向(1)函数调用">
+<meta property="og:url" content="http://dubhehub.github.io/blogs/202312081021542315.html">
+<meta property="og:site_name" content="天枢">
+<meta property="og:description" content="这是一篇C语言逆向入门教学，会介绍如何从一个简单的C语言程序开始接触逆向工程技术。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://source.unsplash.com/random/300x300/?hacker,computer,security&post_id=2">
+<meta property="article:published_time" content="2023-12-08T10:21:54.000Z">
+<meta property="article:modified_time" content="2023-12-09T12:29:00.000Z">
+<meta property="article:author" content="Sin">
+<meta property="article:tag" content="逆向">
+<meta property="article:tag" content="C">
+<meta property="article:tag" content="调用约定">
+<meta property="article:tag" content="堆栈平衡">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://source.unsplash.com/random/300x300/?hacker,computer,security&post_id=2">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>C语言逆向(1)函数调用 - 天枢</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"dubhehub.github.io","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":35,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":false,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"I7JIKNOgG13mOAPcYwH4DNqu-MdYXbMMI","app_key":"ipVt4ESADPZqITQnSwmA8XTG","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>天枢</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/bg/bg-post.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="C语言逆向(1)函数调用"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-12-08 10:21" pubdate>
+          December 8, 2023 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.1k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 mins
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> views
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="上善若水"
+        id="heading-9e645f8549b68372ec91a2d8e3b5c327" role="tab" data-toggle="collapse" href="#collapse-9e645f8549b68372ec91a2d8e3b5c327"
+        aria-expanded="true"
+      >
+        上善若水
+        <span class="list-group-count">(16)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-9e645f8549b68372ec91a2d8e3b5c327"
+           role="tabpanel" aria-labelledby="heading-9e645f8549b68372ec91a2d8e3b5c327">
+        
+        
+          
+          
+  <div class="category-post-list">
+    
+    
+  </div>
+
+          
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="C语言"
+        id="heading-d117f5dea6b7959c82d4fdb7490c555d" role="tab" data-toggle="collapse" href="#collapse-d117f5dea6b7959c82d4fdb7490c555d"
+        aria-expanded="true"
+      >
+        C语言
+        <span class="list-group-count">(3)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-d117f5dea6b7959c82d4fdb7490c555d"
+           role="tabpanel" aria-labelledby="heading-d117f5dea6b7959c82d4fdb7490c555d">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/202312081021542315.html" title="C语言逆向(1)函数调用"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">C语言逆向(1)函数调用</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2023121121101963755.html" title="C语言逆向(2)if语句与JCC"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(2)if语句与JCC</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2023121510590026419.html" title="C语言逆向(3)内存对齐与数组"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">C语言逆向(3)内存对齐与数组</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem collapsed
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="PE"
+        id="heading-3acf83834396fa1c878707132ead62b8" role="tab" data-toggle="collapse" href="#collapse-3acf83834396fa1c878707132ead62b8"
+        aria-expanded="false"
+      >
+        PE
+        <span class="list-group-count">(12)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse " id="collapse-3acf83834396fa1c878707132ead62b8"
+           role="tabpanel" aria-labelledby="heading-3acf83834396fa1c878707132ead62b8">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/2024010716170052947.html" title="PE结构(1)DOS/NT/PE/OP头信息"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(1)DOS/NT/PE/OP头信息</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024051015000029832.html" title="PE结构(10)绑定导入表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(10)绑定导入表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024051114490015619.html" title="PE结构(11)导入表注入DLL"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(11)导入表注入DLL</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/202401112059001543.html" title="PE结构(2)节表/区块表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(2)节表/区块表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024011317470017231.html" title="PE结构(3)从磁盘到内存的加载过程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(3)从磁盘到内存的加载过程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024043014020040528.html" title="PE结构(4)导出表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(4)导出表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050415400062615.html" title="PE结构(5)新增节"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(5)新增节</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050500180037226.html" title="PE结构(6)重定位表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(6)重定位表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/20240506163100318.html" title="PE结构(7)修复重定位表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(7)修复重定位表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/blogs/2024050701250065136.html" title="PE结构(8)转移导出表"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">PE结构(8)转移导出表</span>
+        </a>
+      
+    
+      
+      
+        <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/PE/" class="list-group-item list-group-item-action">
+          <span class="category-post">More...</span>
+        </a>
+        
+  </div>
+
+        
+      </div>
+    </div>
+  
+    
+    
+    
+    <div class="category-sub row nomargin-x">
+      <a class="category-subitem collapsed
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="数据结构"
+        id="heading-0fea7c47d93da5689f31820ee525b367" role="tab" data-toggle="collapse" href="#collapse-0fea7c47d93da5689f31820ee525b367"
+        aria-expanded="false"
+      >
+        数据结构
+        <span class="list-group-count">(1)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse " id="collapse-0fea7c47d93da5689f31820ee525b367"
+           role="tabpanel" aria-labelledby="heading-0fea7c47d93da5689f31820ee525b367">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/blogs/2024060523010046412.html" title="Vector的实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">Vector的实现</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">C语言逆向(1)函数调用</h1>
+            
+              <p id="updated-time" class="note note-info" style="">
+                
+                  
+                    Last updated on December 9, 2023 pm
+                  
+                
+              </p>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="C风格函数"><a href="#C风格函数" class="headerlink" title="C风格函数"></a>C风格函数</h2><p>在正式开始前，我们先讨论在C语言中实现各类逻辑功能的载体：函数。</p>
+<p>一个标准的C语言程序“HelloWorld.c”可能会写作如下结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argNums, <span class="hljs-type">char</span>* args[], <span class="hljs-type">void</span>* envir)</span>&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s&quot;</span>, <span class="hljs-string">&quot;Hello World!&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段程序以<em>main</em>函数作为程序的入口，展开自己的逻辑：输出“Hello World！”</p>
+<p>那么函数在汇编层面是怎么表示的呢？如何将参数传递给函数，函数又如何将返回值传递给调用者？</p>
+<p>这就需要了解函数的调用约定。</p>
+<h3 id="函数调用约定"><a href="#函数调用约定" class="headerlink" title="函数调用约定"></a>函数调用约定</h3><p>在无特别说明的情况下，32位编译器会将C代码按cdecl约定进行编译。</p>
+<p>在32位汇编层面，我们有如下函数调用约定：</p>
+<table>
+<thead>
+<tr>
+<th align="left">约定</th>
+<th align="center">参数传递</th>
+<th align="right">栈平衡</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">cdecl</td>
+<td align="center">从右到左依次压栈</td>
+<td align="right">外平栈(调用者负责平衡栈)</td>
+</tr>
+<tr>
+<td align="left">stdcall</td>
+<td align="center">从右到左依次压栈</td>
+<td align="right">内平栈(函数内部平衡栈，无需调用者参与)</td>
+</tr>
+<tr>
+<td align="left">fastcall</td>
+<td align="center">前两个参数依次放入ECX,EDX寄存器，其他参数从右到左依次压栈</td>
+<td align="right">内平栈</td>
+</tr>
+</tbody></table>
+<p>在x64汇编环境下，仅有fastcall一种调用约定，前四个参数依次放入RCX,RDX,R8,R9四个寄存器，其他参数从右到左依次压栈，函数内部平栈。</p>
+<p>汇编程序通过 <em>栈</em> 结构将参数传递给函数，实际上函数内部使用的局部变量也存储在栈空间上。</p>
+<h2 id="Windows系统的栈设计"><a href="#Windows系统的栈设计" class="headerlink" title="Windows系统的栈设计"></a>Windows系统的栈设计</h2><p>栈空间的总量由系统分配，从高内存向低内存扩展，即内存减少为栈抬高的方向。</p>
+<p>通俗来说:</p>
+<p>执行压栈指令<em>push</em>时，栈顶指向的内存地址将减少；</p>
+<p>执行弹栈指令 <em>pop</em>时，栈顶指向的内存地址将增加。</p>
+<h3 id="函数序言"><a href="#函数序言" class="headerlink" title="函数序言"></a>函数序言</h3><p>多数C风格函数的入口会有如下代码：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">push</span> <span class="hljs-built_in">ebp</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">ebp</span>, <span class="hljs-built_in">esp</span><br></code></pre></td></tr></table></figure>
+
+<p>ebp存储了栈底空间地址，此代码在函数入口将ebp压栈，保存了之前的栈底，确保栈帧之间的连续性。</p>
+<p>这段代码也被称为<strong>函数序言</strong>， 需要注意的是，不一定所有的C语言函数都严格遵守这个规则。</p>
+<h3 id="栈空间"><a href="#栈空间" class="headerlink" title="栈空间"></a>栈空间</h3><h4 id="栈帧指针"><a href="#栈帧指针" class="headerlink" title="栈帧指针"></a>栈帧指针</h4><p>esp寄存器在不进行人为干涉的情况下，始终存储栈顶地址。</p>
+<p>使用pop，push，call，ret等指令时，都会影响esp寄存器的值。</p>
+<p>esp寄存器也被称为<strong>栈帧指针</strong></p>
+<h4 id="帧基指针"><a href="#帧基指针" class="headerlink" title="帧基指针"></a>帧基指针</h4><p>由于ebp寄存器始终存储栈底，即栈帧的基地址，所以ebp寄存器也被称为<strong>帧基指针</strong>。</p>
+<p>常见的使用方式：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>] <span class="hljs-comment">;获取上一帧的帧基地址</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">0x04</span>] <span class="hljs-comment">;获取函数返回地址</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">0x08</span>] <span class="hljs-comment">;获取函数的第一个参数</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">0x04</span>] <span class="hljs-comment">;获取函数的第一个局部变量</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="局部变量缓冲区"><a href="#局部变量缓冲区" class="headerlink" title="局部变量缓冲区"></a>局部变量缓冲区</h4><p>在函数序言结束后，如果函数内部需要使用局部变量，一般会在栈上开辟局部变量的空间。</p>
+<p>部分编译器(如微软的msvs)在debug模式下编译C语言代码时，会在局部变量空间内填充0xCC，即int 3中断。</p>
+<p>形如下面格式：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">sub</span> <span class="hljs-built_in">esp</span>, <span class="hljs-number">0x40</span> <span class="hljs-comment">;开辟64字节的局部变量空间</span><br><span class="hljs-keyword">push</span> <span class="hljs-built_in">ebx</span>      <br><span class="hljs-keyword">push</span> <span class="hljs-built_in">esi</span><br><span class="hljs-keyword">push</span> <span class="hljs-built_in">edi</span>      <span class="hljs-comment">;保存现场</span><br><span class="hljs-keyword">lea</span> <span class="hljs-built_in">edi</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span> - <span class="hljs-number">0x40</span>]<br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>, <span class="hljs-number">0xcccccccc</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">ecx</span>, <span class="hljs-number">0x10</span><br><span class="hljs-keyword">rep</span> <span class="hljs-keyword">stosd</span>     <span class="hljs-comment">;将开辟出的64字节空间全部用0xcc填充</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="函数尾声"><a href="#函数尾声" class="headerlink" title="函数尾声"></a>函数尾声</h3><p>在函数即将结束时，会销毁开辟的栈空间，并将帧指针与帧基指针还原到函数调用时的状态。</p>
+<p>形如下面格式：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">pop</span> <span class="hljs-built_in">edi</span><br><span class="hljs-keyword">pop</span> <span class="hljs-built_in">esi</span><br><span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebx</span><br><span class="hljs-keyword">mov</span> <span class="hljs-built_in">esp</span>, <span class="hljs-built_in">ebp</span> <span class="hljs-comment">;销毁栈空间</span><br><span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebp</span>      <span class="hljs-comment">;还原帧基指针</span><br><span class="hljs-keyword">ret</span>          <span class="hljs-comment">;变形即 pop eip</span><br></code></pre></td></tr></table></figure>
+
+<p>这样的模板代码也被称为<strong>函数尾声</strong>，需要注意的是，与<strong>函数序言</strong>相同，并不是所有函数都严格遵守这个形式。</p>
+<h3 id="栈平衡"><a href="#栈平衡" class="headerlink" title="栈平衡"></a>栈平衡</h3><p>由于参数通过栈结构传递，因此函数的调用需要保证:</p>
+<p><strong>函数调用前后的esp&#x2F;ebp寄存器值相同，即栈平衡。</strong></p>
+<p><strong>cdecl</strong>风格的函数一般定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> __cdecl <span class="hljs-title function_">func</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span>;<br></code></pre></td></tr></table></figure>
+
+<p>该函数由调用者平衡栈，即:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">mov</span> <span class="hljs-built_in">ebx</span>, <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[<span class="hljs-built_in">ebp</span> - <span class="hljs-number">0x04</span>]<br><span class="hljs-keyword">push</span> <span class="hljs-built_in">ebx</span>            <span class="hljs-comment">;参数入栈</span><br><span class="hljs-keyword">call</span> func           <span class="hljs-comment">;调用函数</span><br><span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>, <span class="hljs-number">0x04</span>       <span class="hljs-comment">;平衡栈</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="空函数与裸函数区别"><a href="#空函数与裸函数区别" class="headerlink" title="空函数与裸函数区别"></a>空函数与裸函数区别</h2><p>在C语言中，空函数与裸函数对编译器而言完全不同，如下形式的两个函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">void</span> __declspec(naked) naked_func(<span class="hljs-type">int</span> i)&#123;<br><br>&#125;<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">empty_func</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span>&#123;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>被 <em>__declspec(naked)</em> 修饰的函数 <em>naked_func</em> 在编译阶段不会生成任何汇编代码，所有工作都需要编码者自行实现。</p>
+<p>而空函数 <em>empty_func</em> 中虽然也没有写任何程序逻辑，但是编译器会为其生成 <strong>函数序言</strong> 、 <strong>函数尾声</strong> 等模板代码。</p>
+<p>这意味着调用一个空函数不会引发异常，但是调用一个未被编码的裸函数时，会发生程序异常（裸函数无法产生返回，debug模式下程序会走入“int 3 海洋”）。</p>
+<h3 id="自实现裸函数示例"><a href="#自实现裸函数示例" class="headerlink" title="自实现裸函数示例"></a>自实现裸函数示例</h3><p>如下形式的C语言函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">plus</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">int</span> z)</span> &#123;<br>	<span class="hljs-type">int</span> a = <span class="hljs-number">2</span>;<br>	<span class="hljs-type">int</span> b = <span class="hljs-number">3</span>;<br>	<span class="hljs-type">int</span> c = <span class="hljs-number">4</span>;<br><br>	<span class="hljs-keyword">return</span> a + b + c + x + y + z;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>改为用裸函数实现：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> __declspec(naked) plus(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">int</span> z) &#123;<br>	__asm &#123;<br>		<span class="hljs-comment">//保存栈基指针</span><br>		push ebp<br>		mov ebp, esp<br>		<span class="hljs-comment">//开辟空间存储局部变量</span><br>		sub esp, <span class="hljs-number">0x0c</span><br>		<span class="hljs-comment">//保留现场</span><br>		push ebx<br>		push esi<br>		push edi<br>		<span class="hljs-comment">//清空栈空间</span><br>		lea edi, dword ptr ds:[ebp - <span class="hljs-number">0x0c</span>]<br>		mov eax, <span class="hljs-number">0xcccccccc</span><br>		mov ecx, <span class="hljs-number">0x03</span><br>		rep stosd<br>		<span class="hljs-comment">//创建局部变量</span><br>		mov dword ptr ds:[ebp - <span class="hljs-number">0x04</span>], <span class="hljs-number">2</span><br>		mov dword ptr ds:[ebp - <span class="hljs-number">0x08</span>], <span class="hljs-number">3</span><br>		mov dword ptr ds:[ebp - <span class="hljs-number">0x0c</span>], <span class="hljs-number">4</span><br>		<span class="hljs-comment">//累加逻辑</span><br>		mov eax, dword ptr ds:[ebp + <span class="hljs-number">0x08</span>]<br>		add eax, dword ptr ds:[ebp + <span class="hljs-number">0x0c</span>]<br>		add eax, dword ptr ds:[ebp + <span class="hljs-number">0x10</span>]<br>		add eax, dword ptr ds:[ebp - <span class="hljs-number">0x04</span>]<br>		add eax, dword ptr ds : [ebp - <span class="hljs-number">0x08</span>]<br>		add eax, dword ptr ds : [ebp - <span class="hljs-number">0x0c</span>]<br>		<span class="hljs-comment">//恢复现场</span><br>		pop edi<br>		pop esi<br>		pop ebx<br>		<span class="hljs-comment">//销毁栈空间</span><br>		mov esp, ebp<br>		pop ebp<br>		<span class="hljs-comment">//结果保存在eax, pop eip</span><br>		ret<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>编写代码测试，结果如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/1.jpg" srcset="/img/loading.gif" lazyload></p>
+<h2 id="真正的程序入口"><a href="#真正的程序入口" class="headerlink" title="真正的程序入口"></a>真正的程序入口</h2><p>编程中我们会习惯将<em>int main()<em>函数作为程序入口，在</em>Windows MFC</em>程序中会将<em>WinMain</em>函数作为程序入口。</p>
+<p>然而这些“入口”都只是逻辑入口，并不是程序启动的真正入口。</p>
+<p>接下来以 <a href="/img/post/2/CallingConvention.exe">示例程序 CallingConvention.exe</a> 进行调试演示，论证这一观点。</p>
+<h2 id="逆向示例"><a href="#逆向示例" class="headerlink" title="逆向示例"></a>逆向示例</h2><p>启动调试器挂载目标程序，看到当前运行在系统领空：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/2.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>输入快捷键<em>ALT+F9</em>运行至用户代码，可以看到此时来到了<em>EntryPoint</em></p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/3.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>此时才是程序真正的入口，而不是我们的逻辑入口<em>main</em>函数</p>
+<h3 id="寻找main函数"><a href="#寻找main函数" class="headerlink" title="寻找main函数"></a>寻找main函数</h3><p>已知C代码中<em>main</em>函数的原始定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argNum, <span class="hljs-type">void</span>* args[], <span class="hljs-type">void</span>* envir)</span><br></code></pre></td></tr></table></figure>
+
+<p>即函数声明了三个参数，根据我们之前对<em>cdecl</em>风格的调用约定的猜想，调用<em>main</em>函数大致应该如下：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-keyword">push</span> xxx<br><span class="hljs-keyword">push</span> xxx<br><span class="hljs-keyword">push</span> xxx<br><span class="hljs-keyword">call</span> main<br><span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>, <span class="hljs-number">0x0c</span><br></code></pre></td></tr></table></figure>
+
+<p>按照此猜想开始单步调试程序，看到如下代码片段，相似度很高：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/4.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>观察此段代码:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">00401280</span>        <span class="hljs-keyword">mov</span> <span class="hljs-built_in">edx</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[4225FC]<br><span class="hljs-number">00401286</span>        <span class="hljs-keyword">push</span> <span class="hljs-built_in">edx</span>                     <br><span class="hljs-number">00401287</span>        <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[4225F4]<br>0040128C        <span class="hljs-keyword">push</span> <span class="hljs-built_in">eax</span>                     <br><span class="hljs-number">0040128D</span>        <span class="hljs-keyword">mov</span> <span class="hljs-built_in">ecx</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ds</span>:[4225F0]<br><span class="hljs-number">00401293</span>        <span class="hljs-keyword">push</span> <span class="hljs-built_in">ecx</span>                     <br><span class="hljs-number">00401294</span>        <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.401014</span> <span class="hljs-comment">;压栈了3个参数，栈抬高0xc字节</span><br><span class="hljs-number">00401299</span>        <span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>,C                     <span class="hljs-comment">;降低0xc字节栈，平衡了3个参数</span><br></code></pre></td></tr></table></figure>
+
+<p>步入0x00401014处观察，正是main函数无疑：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/5.jpg" srcset="/img/loading.gif" lazyload></p>
+<h3 id="核心逻辑分析"><a href="#核心逻辑分析" class="headerlink" title="核心逻辑分析"></a>核心逻辑分析</h3><p>接下来我们开始逐行分析程序行为，首先看到熟悉的<strong>函数序言</strong>:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">00401110</span>        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">ebp</span>                                <br><span class="hljs-number">00401111</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">ebp</span>,<span class="hljs-built_in">esp</span>                             <br><span class="hljs-number">00401113</span>        | <span class="hljs-keyword">sub</span> <span class="hljs-built_in">esp</span>,<span class="hljs-number">44</span>                            <span class="hljs-comment">; 抬高栈空间  </span><br><span class="hljs-number">00401116</span>        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">ebx</span>                              <span class="hljs-comment">; 保留现场  </span><br><span class="hljs-number">00401117</span>        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">esi</span>                                <br><span class="hljs-number">00401118</span>        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">edi</span>                                <br><span class="hljs-number">00401119</span>        | <span class="hljs-keyword">lea</span> <span class="hljs-built_in">edi</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">44</span>]         <span class="hljs-comment">; 局部变量空间缓冲区  </span><br>0040111C        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">ecx</span>,<span class="hljs-number">11</span>                              <br><span class="hljs-number">00401121</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,CCCCCCCC                        <br><span class="hljs-number">00401126</span>        | <span class="hljs-keyword">rep</span> <span class="hljs-keyword">stosd</span>                             <span class="hljs-comment">; 局部变量空间缓冲区 清理结束  </span><br></code></pre></td></tr></table></figure>
+
+<p>这个函数的代码逻辑并不复杂，因为我们发现代码并未运行很长段落，就遇到了<strong>函数尾声</strong>。</p>
+<p>函数内又涉及调用其他函数，根据逆向的经验法则，我们并不急于追踪每一个函数调用，先分析在<em>main</em>函数中的逻辑:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">00401128</span>        | <span class="hljs-keyword">push</span> <span class="hljs-number">7</span>                                  |<br>0040112A        | <span class="hljs-keyword">push</span> <span class="hljs-number">6</span>                                  |<br>0040112C        | <span class="hljs-keyword">push</span> <span class="hljs-number">4</span>                                  |<br>0040112E        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">edx</span>,<span class="hljs-number">3</span>                               |<br><span class="hljs-number">00401133</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">ecx</span>,<span class="hljs-number">1</span>                               |<br><span class="hljs-number">00401138</span>        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.401019</span>           | 函数调用，可能是fastcall约定<br><span class="hljs-number">0040113D</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">4</span>],<span class="hljs-built_in">eax</span>            | 返回值保存在局部变量 a<br><span class="hljs-number">00401140</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">4</span>]            | <br><span class="hljs-number">00401143</span>        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">eax</span>                                |<br><span class="hljs-number">00401144</span>        | <span class="hljs-keyword">push</span> callingconvention<span class="hljs-number">.</span>41F10C           | 使用 a 和<span class="hljs-string">&quot;%d&quot;</span>作为入参，猜测是printf函数<br><span class="hljs-number">00401149</span>        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.</span>40B7E0           | 打印计算结果？<br>0040114E        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>,<span class="hljs-number">8</span>                               | 外平栈，猜测是cdecl约定<br><span class="hljs-number">00401151</span>        | <span class="hljs-keyword">xor</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">eax</span>                             | main函数返回<span class="hljs-number">0</span>，正常退出<br><span class="hljs-number">00401153</span>        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">edi</span>                                 | 还原现场<br><span class="hljs-number">00401154</span>        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">esi</span>                                 |<br><span class="hljs-number">00401155</span>        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebx</span>                                 |<br><span class="hljs-number">00401156</span>        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>,<span class="hljs-number">44</span>                              | 销毁栈空间<br><span class="hljs-number">00401159</span>        | <span class="hljs-keyword">cmp</span> <span class="hljs-built_in">ebp</span>,<span class="hljs-built_in">esp</span>                             |<br>0040115B        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.401170</span>           | 编译器栈平衡检测<br><span class="hljs-number">00401160</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">esp</span>,<span class="hljs-built_in">ebp</span>                             | <br><span class="hljs-number">00401162</span>        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebp</span>                                 | 还原帧基指针<br><span class="hljs-number">00401163</span>        | <span class="hljs-keyword">ret</span>                                     | main函数结束<br></code></pre></td></tr></table></figure>
+
+<p>根据这一轮分析，我们猜测main函数中的核心逻辑就是 <em>callingconvention.401019</em></p>
+<h4 id="核心逻辑大致脉络"><a href="#核心逻辑大致脉络" class="headerlink" title="核心逻辑大致脉络"></a>核心逻辑大致脉络</h4><p>进入核心逻辑函数，此时栈空间分布情况：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">0019FED0                 <span class="hljs-number">0040113D</span>   <span class="hljs-comment">;返回地址</span><br>0019FED4                 <span class="hljs-number">00000004</span>   <span class="hljs-comment">;参数3</span><br>0019FED8                 <span class="hljs-number">00000006</span>   <span class="hljs-comment">;参数4</span><br>0019FEDC                 <span class="hljs-number">00000007</span>   <span class="hljs-comment">;参数5</span><br></code></pre></td></tr></table></figure>
+
+<p>之前怀疑该函数遵守<em>fastcall</em>调用约定，因此记录下ecx、edx寄存器的值：</p>
+<table>
+<thead>
+<tr>
+<th align="left">寄存器</th>
+<th align="right">值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">ecx</td>
+<td align="right">00000001</td>
+</tr>
+<tr>
+<td align="left">edx</td>
+<td align="right">00000003</td>
+</tr>
+</tbody></table>
+<p>将函数的序言部分、尾声部分删减掉不看，直接观察函数的运行逻辑：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">004010BA        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">8</span>],<span class="hljs-built_in">edx</span>            | 第二个参数保存为局部变量b<br>004010BD        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">4</span>],<span class="hljs-built_in">ecx</span>            | 第一个参数保存为局部变量a<br>004010C0        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">8</span>]            | <span class="hljs-built_in">eax</span> = 参数<span class="hljs-number">3</span><br>004010C3        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">eax</span>                                |<br>004010C4        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">ecx</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">8</span>]            | <span class="hljs-built_in">ecx</span> = b<br>004010C7        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">ecx</span>                                |<br>004010C8        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">edx</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">4</span>]            | <span class="hljs-built_in">edx</span> = a<br>004010CB        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">edx</span>                                |<br>004010CC        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.</span>40101E           | 猜测:func1(a, b, 参数<span class="hljs-number">3</span>)<br>004010D1        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-C],<span class="hljs-built_in">eax</span>            | 返回值保存为局部变量c<br>004010D4        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">8</span>]            | <span class="hljs-built_in">eax</span> = b<br>004010D7        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">eax</span>                                |<br>004010D8        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">ecx</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">4</span>]            | <span class="hljs-built_in">ecx</span> = a<br>004010<span class="hljs-built_in">DB</span>        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">ecx</span>                                |<br>004010DC        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.401005</span>           | 猜测:func2(a, b)<br>004010E1        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>,<span class="hljs-number">8</span>                               |<br>004010E4        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">10</span>],<span class="hljs-built_in">eax</span>           | 返回值保存为局部变量d<br>004010E7        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">edx</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">10</span>]           | <span class="hljs-built_in">edx</span> = d<br>004010EA        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">edx</span>                                |<br>004010EB        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-C]            | <span class="hljs-built_in">eax</span> = c<br>004010EE        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">eax</span>                                |<br>004010EF        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.401005</span>           | 猜测:func3(c, d)<br>004010F4        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>,<span class="hljs-number">8</span>                               |<br></code></pre></td></tr></table></figure>
+
+<p>此时需要分别逆向func1\func2\func3这三个子函数的逻辑，我们先记录下子函数地址：</p>
+<ol>
+<li>callingconvention.40101E ; func1</li>
+<li>callingconvention.401005 ; func2</li>
+<li>callingconvention.401005 ; func3</li>
+</ol>
+<p>发现func2与func3函数地址相同，实际上是同一个函数的多次调用而已。</p>
+<h4 id="callingconvention-40101E-func1-分析"><a href="#callingconvention-40101E-func1-分析" class="headerlink" title="callingconvention.40101E func1 分析"></a>callingconvention.40101E func1 分析</h4><p>步入func1，记录此时栈空间分布：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">0019FE60                 004010D1 <span class="hljs-comment">; 返回004010D1,mov dword ptr ss:[ebp-C],eax</span><br>0019FE64                 <span class="hljs-number">00000001</span> <span class="hljs-comment">; 参数1  </span><br>0019FE68                 <span class="hljs-number">00000003</span> <span class="hljs-comment">; 参数2  </span><br>0019FE6C                 <span class="hljs-number">00000004</span> <span class="hljs-comment">; 参数3 </span><br></code></pre></td></tr></table></figure>
+
+<p>同样删减掉函数尾声与序言，观察核心逻辑：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">00401078</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">8</span>]            | <span class="hljs-built_in">eax</span>  = 参数<span class="hljs-number">1</span><br>0040107B        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>+C]            | <span class="hljs-built_in">eax</span> += 参数<span class="hljs-number">2</span><br>0040107E        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">10</span>]           | <span class="hljs-built_in">eax</span> += 参数<span class="hljs-number">3</span><br></code></pre></td></tr></table></figure>
+
+<p>可知func1是个累加函数，将3个参数相加后返回，观察其函数尾声，可知是遵循<em>stdcall</em>调用约定, 即参数从右到左入栈、内部平栈:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">00401084</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">esp</span>,<span class="hljs-built_in">ebp</span>                             |<br><span class="hljs-number">00401086</span>        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebp</span>                                 |<br><span class="hljs-number">00401087</span>        | <span class="hljs-keyword">ret</span> C                                   | 内平栈<br></code></pre></td></tr></table></figure>
+
+<p>预期当次调用返回时eax的值等于0x08，观测结果与预期一致:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/6.jpg" srcset="/img/loading.gif" lazyload></p>
+<h4 id="callingconvention-401005-func2-分析"><a href="#callingconvention-401005-func2-分析" class="headerlink" title="callingconvention.401005 func2 分析"></a>callingconvention.401005 func2 分析</h4><p>步入func1，记录此时栈空间分布：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">0019FE64                 004010E1 <span class="hljs-comment">; 返回004010E1,add esp,8</span><br>0019FE68                 <span class="hljs-number">00000001</span> <span class="hljs-comment">; 参数1  </span><br>0019FE6C                 <span class="hljs-number">00000003</span> <span class="hljs-comment">; 参数2  </span><br></code></pre></td></tr></table></figure>
+
+<p>同样删减掉函数尾声与序言，观察核心逻辑：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">00401048</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>+<span class="hljs-number">8</span>]            | <span class="hljs-built_in">eax</span>  = 参数<span class="hljs-number">1</span><br>0040104B        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>+C]            | <span class="hljs-built_in">eax</span> += 参数<span class="hljs-number">2</span><br></code></pre></td></tr></table></figure>
+
+<p>可知func2也只是个累加函数，根据其尾声与入参方式，可知是遵循cdecl约定：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">00401051</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">esp</span>,<span class="hljs-built_in">ebp</span>                             |<br><span class="hljs-number">00401053</span>        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebp</span>                                 |<br><span class="hljs-number">00401054</span>        | <span class="hljs-keyword">ret</span>                                     | 外平栈<br></code></pre></td></tr></table></figure>
+
+<p>预期当次调用返回时eax的值等于0x04，观测结果与预期一致:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/7.jpg" srcset="/img/loading.gif" lazyload></p>
+<h4 id="回到核心逻辑"><a href="#回到核心逻辑" class="headerlink" title="回到核心逻辑"></a>回到核心逻辑</h4><p>我们来看看核心逻辑剩余未被分析的部分:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">004010E4        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">10</span>],<span class="hljs-built_in">eax</span>           | 返回值保存为局部变量d=<span class="hljs-number">4</span><br>004010E7        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">edx</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-<span class="hljs-number">10</span>]           | <span class="hljs-built_in">edx</span> = d = <span class="hljs-number">4</span><br>004010EA        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">edx</span>                                |<br>004010EB        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">eax</span>,<span class="hljs-built_in">dword</span> <span class="hljs-built_in">ptr</span> <span class="hljs-built_in">ss</span>:[<span class="hljs-built_in">ebp</span>-C]            | <span class="hljs-built_in">eax</span> = c = <span class="hljs-number">8</span><br>004010EE        | <span class="hljs-keyword">push</span> <span class="hljs-built_in">eax</span>                                |<br>004010EF        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.401005</span>           | 累加(c, d)<br>004010F4        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>,<span class="hljs-number">8</span>                               | 预期 <span class="hljs-built_in">eax</span> = <span class="hljs-number">0xc</span><br></code></pre></td></tr></table></figure>
+
+<p>直接执行，观测预期与结果一致:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/8.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>此时函数核心逻辑运行结束，观测函数尾声，验证我们之前的猜想，这个函数遵循fastcall约定：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs x86asm">004010F7        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">edi</span>                                 |<br>004010F8        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">esi</span>                                 |<br>004010F9        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebx</span>                                 |<br>004010FA        | <span class="hljs-keyword">add</span> <span class="hljs-built_in">esp</span>,<span class="hljs-number">50</span>                              |<br>004010FD        | <span class="hljs-keyword">cmp</span> <span class="hljs-built_in">ebp</span>,<span class="hljs-built_in">esp</span>                             |<br>004010FF        | <span class="hljs-keyword">call</span> callingconvention<span class="hljs-number">.401170</span>           |<br><span class="hljs-number">00401104</span>        | <span class="hljs-keyword">mov</span> <span class="hljs-built_in">esp</span>,<span class="hljs-built_in">ebp</span>                             |<br><span class="hljs-number">00401106</span>        | <span class="hljs-keyword">pop</span> <span class="hljs-built_in">ebp</span>                                 |<br><span class="hljs-number">00401107</span>        | <span class="hljs-keyword">ret</span> C                                   | 内平栈，降低<span class="hljs-number">12</span>字节<br></code></pre></td></tr></table></figure>
+
+<p>该函数使用ecx、edx寄存器，并在尾声中平栈12字节，因此可以确定是遵循fastcall约定的函数</p>
+<h3 id="逆向分析结束"><a href="#逆向分析结束" class="headerlink" title="逆向分析结束"></a>逆向分析结束</h3><p>main函数接下来打印了计算结果，与我们分析的一致，使用了<em>printf</em>函数输出结果：12</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/9.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>程序运行至此结束，我们完成了对这个示例程序的逆向分析。</p>
+<p>接下来就要根据分析结论进行代码还原了。</p>
+<h3 id="反汇编还原为C代码"><a href="#反汇编还原为C代码" class="headerlink" title="反汇编还原为C代码"></a>反汇编还原为C代码</h3><p>根据逆向分析结果，尝试还原C代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> __stdcall <span class="hljs-title function_">func1</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> x2, <span class="hljs-type">int</span> x3)</span> &#123;<br>	<span class="hljs-keyword">return</span> x + x2 + x3;<br>&#125;<br><br><span class="hljs-type">int</span> __cdecl <span class="hljs-title function_">func2</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> x2)</span> &#123;<br>	<span class="hljs-keyword">return</span> x + x2;<br>&#125;<br><br><span class="hljs-type">int</span> __fastcall <span class="hljs-title function_">plus</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> x2, <span class="hljs-type">int</span> x3, <span class="hljs-type">int</span> x4, <span class="hljs-type">int</span> x5)</span> &#123;<br>	<span class="hljs-type">int</span> a = x;<br>	<span class="hljs-type">int</span> b = x2;<br>	<span class="hljs-type">int</span> c = func1(a, b, x3);<br>	<span class="hljs-type">int</span> d = func2(a, b);<br>	<span class="hljs-keyword">return</span> func2(c, d);<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> numbs, <span class="hljs-type">char</span>* args[])</span> &#123;<br>	<span class="hljs-type">int</span> a = plus(<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d\r\n&quot;</span>, a);<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>检查输出结果与示例程序输出是否一致:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/DubheHub/dubhehub.github.io@master/img/post/2/10.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>至此，逆向分析结束。</p>
+<h2 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h2><p>示例程序虽然简单，但是使用到的分析技巧却是真实逆向工程中常用的分析技术。</p>
+<p>读者应自行下载示例程序并动手逆向，在过程中不断思考才是提升自身逆向水平的唯一道路。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/" class="category-chain-item">上善若水</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%B8%8A%E5%96%84%E8%8B%A5%E6%B0%B4/C%E8%AF%AD%E8%A8%80/" class="category-chain-item">C语言</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%80%86%E5%90%91/" class="print-no-link">#逆向</a>
+      
+        <a href="/tags/C/" class="print-no-link">#C</a>
+      
+        <a href="/tags/%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/" class="print-no-link">#调用约定</a>
+      
+        <a href="/tags/%E5%A0%86%E6%A0%88%E5%B9%B3%E8%A1%A1/" class="print-no-link">#堆栈平衡</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>C语言逆向(1)函数调用</div>
+      <div>http://dubhehub.github.io/blogs/202312081021542315.html</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Sin</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>December 8, 2023</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - Non-commercial">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - Share-alike">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/blogs/2023120921430012359.html" title="随书文件">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">随书文件</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/blogs/2021110513150017806.html" title="编译64位程序时使用汇编的方法总结">
+                        <span class="hidden-mobile">编译64位程序时使用汇编的方法总结</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="gitalk-container"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#gitalk-container', function() {
+      Fluid.utils.createCssLink('/css/gitalk.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/gitalk/1.8.0/gitalk.min.js', function() {
+        var options = Object.assign(
+          {"clientID":"4e301faf3494bc26a994","clientSecret":"eebb8a85e999c28b8ca8828e779dc5138712492c","repo":"blog-comments","owner":"DubheHub","admin":["DubheHub"],"language":"en","labels":["Gitalk"],"perPage":10,"pagerDirection":"last","distractionFreeMode":false,"createIssueManually":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","id":"location.pathname"},
+          {
+            id: 'a4d297acbfb732d62e2eb0dcb1d7ea82'
+          }
+        )
+        var gitalk = new Gitalk(options);
+        gitalk.render('gitalk-container');
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        Page View: 
+        <span id="busuanzi_value_site_pv"></span>
+        
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        Unique Visitor: 
+        <span id="busuanzi_value_site_uv"></span>
+        
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
